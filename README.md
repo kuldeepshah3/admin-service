@@ -1,2 +1,2 @@
 # admin-service
- Services to handle admin actions
+ This service handles all admin role user actions
