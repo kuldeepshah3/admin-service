@@ -17,13 +17,26 @@ pipeline {
             }
         }
 
+        stage('Code compilation)') {
+           // Run the maven build
+            steps {
+                script {
+                    // Get the Maven tool from global configuration.
+                    def mvnHome = tool 'Maven 3.8.2'
+                    bat(/mvn clean compile/)
+                    echo 'Code Compilation successful'
+
+                }
+            }
+        }
+
         stage('Quality Gate (Integration Tests and Code Scan)') {
            // Run the maven build
             steps {
                 script {
                     // Get the Maven tool from global configuration.
                     def mvnHome = tool 'Maven 3.8.2'
-                    bat(/"${mvnHome}\bin\mvn" verify findbugs:findbugs cobertura:cobertura pmd:pmd site:site -Dmaven.test.failure.ignore=true package/)
+                    bat(/mvn verify findbugs:findbugs cobertura:cobertura pmd:pmd site:site -Dmaven.test.failure.ignore=true package/)
                     echo 'Code Analysis successful'
 
                 }
