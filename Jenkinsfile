@@ -20,7 +20,8 @@ pipeline {
         stage ('Print useful values') {
             steps {
                 script {
-                    echo ${env.BUILD_ID}
+                    echo "${BUILD_ID}"
+                    echo "Current \${BUILD_NUMBER} -> ${BUILD_NUMBER}"
                 }
             }
         }
@@ -50,7 +51,10 @@ pipeline {
             }
         }
 
-        /* stage('Prepare Docker Image') {
+        stage('Prepare Docker Image') {
+            options {
+                timeout(time: 10, unit: 'MINUTES')
+            }
             steps {
                 echo 'Building docker image....'
                 bat(/docker build -t kuldeepshah3\/admin-service ./)
@@ -59,24 +63,27 @@ pipeline {
         }
 
         stage('Upload image to docker hub') {
+            options {
+                timeout(time: 20, unit: 'MINUTES')
+            }
             steps {
                 echo 'Push image to Docker Hub'
                 bat(/docker push kuldeepshah3\/admin-service:latest/)
                 echo 'Docker push successful'
             }
-        } */
+        }
 
     }
 
-    post {
+    // post {
         // Always runs. And it runs before any of the other post conditions.
-        always {
+        // always {
             // Let's wipe out the workspace before we finish!
             // deleteDir()
-        }
-    }
+        // }
+    // }
 
-// The options directive is for configuration that applies to the whole job.
+    // The options directive is for configuration that applies to the whole job.
     options {
         // For example, we'd like to make sure we only keep 10 builds at a time, so
         // we don't fill up our storage!
@@ -84,6 +91,6 @@ pipeline {
 
         // And we'd really like to be sure that this build doesn't hang forever, so
         // let's time it out after an hour.
-        timeout(time: 25, unit: 'MINUTES')
+        timeout(time: 45, unit: 'MINUTES')
     }
 }
