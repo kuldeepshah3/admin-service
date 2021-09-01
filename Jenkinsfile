@@ -7,6 +7,9 @@ pipeline {
         IMAGE = readMavenPom().getArtifactId()
         VERSION = readMavenPom().getVersion()
         MYUSERID = "kuldeepshah3"
+        DOCKERREGISTRY = "${MYUSERID}\/${IMAGE}"
+        DOCKERCREDS = 'DockerHub'
+        dockerImage = ''
     }
     stages {
 
@@ -64,7 +67,8 @@ pipeline {
             }
             steps {
                 echo 'Building docker image....'
-                bat(/docker build -t ${MYUSERID}\/${IMAGE} ./)
+                // bat(/docker build -t ${MYUSERID}\/${IMAGE} ./)
+                dockerImage = docker.build DOCKERREGISTRY + ":$VERSION"
                 echo 'Docker build successful'
             }
         }
@@ -75,7 +79,7 @@ pipeline {
             }
             steps {
                 echo 'Creating tag for docker image....'
-                bat(/docker tag ${MYUSERID}\/${IMAGE}:latest ${MYUSERID}\/${IMAGE}:${VERSION}/)
+                // bat(/docker tag ${MYUSERID}\/${IMAGE}:latest ${MYUSERID}\/${IMAGE}:${VERSION}/)
                 echo 'Docker tag successful'
             }
         }
@@ -86,11 +90,24 @@ pipeline {
             }
             steps {
                 echo 'Push image to Docker Hub'
-                bat(/docker push ${MYUSERID}\/${IMAGE}:${VERSION}/)
+                // bat(/docker push ${MYUSERID}\/${IMAGE}:${VERSION}/)
+                docker.withRegistry( '', DOCKERCREDS ) {
+                    dockerImage.push()
+                }
                 echo 'Docker push successful'
             }
         }
 
+        stage('Clean up docker image') {
+            options {
+                timeout(time: 5, unit: 'MINUTES')
+            }
+            steps {
+                echo 'Remove image'
+                bat(/docker rmi ${MYUSERID}\/${IMAGE}:${VERSION}/)
+                echo 'Docker image removal successful'
+            }
+        }
     }
 
     // post {
