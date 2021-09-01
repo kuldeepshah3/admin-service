@@ -4,6 +4,8 @@ pipeline {
     environment {
         // To run batch commands
         PATH = "C:\\Program Files\\Java\\jdk1.8.0_301\\bin;C:\\Program Files\\apache-maven-3.8.2\\bin;C:\\WINDOWS\\SYSTEM32;C:\\Program Files\\Docker\\Docker\\resources\\bin"
+        IMAGE = readMavenPom().getArtifactId()
+        VERSION = readMavenPom().getVersion()
     }
     stages {
 
@@ -22,6 +24,8 @@ pipeline {
                 script {
                     echo "${BUILD_ID}"
                     echo "Current \${BUILD_NUMBER} -> ${BUILD_NUMBER}"
+                    echo "Pom.xml version is \${VERSION} -> ${VERSION}"
+                    echo "Pom.xml image is \${IMAGE} -> ${IMAGE}"
                 }
             }
         }
