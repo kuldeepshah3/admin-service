@@ -7,7 +7,7 @@ pipeline {
         IMAGE = readMavenPom().getArtifactId()
         VERSION = readMavenPom().getVersion()
         MYUSERID = "kuldeepshah3"
-        DOCKERREGISTRY = "${MYUSERID}\/${IMAGE}"
+        DOCKERREGISTRY = "${MYUSERID}/${IMAGE}"
         DOCKERCREDS = 'DockerHub'
         dockerImage = ''
     }
