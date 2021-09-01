@@ -23,16 +23,7 @@ pipeline {
             }
         }
 
-        stage ('Print useful values') {
-            steps {
-                script {
-                    echo "Pom.xml version is \${VERSION} -> ${VERSION}"
-                    echo "Pom.xml image is \${IMAGE} -> ${IMAGE}"
-                }
-            }
-        }
-
-        stage('Code compilation)') {
+        stage('Code compilation') {
             options {
                 timeout(time: 5, unit: 'MINUTES')
             }
@@ -42,7 +33,6 @@ pipeline {
                     def mvnHome = tool 'Maven 3.8.2'
                     bat(/mvn clean compile/)
                     echo 'Code Compilation successful'
-
                 }
             }
         }
@@ -55,7 +45,7 @@ pipeline {
                 script {
                     // Get the Maven tool from global configuration.
                     def mvnHome = tool 'Maven 3.8.2'
-                    bat(/mvn verify findbugs:findbugs cobertura:cobertura pmd:pmd site:site -Dmaven.test.failure.ignore=true package/)
+                    bat(/mvn verify findbugs:findbugs cobertura:cobertura pmd:pmd site:site package/)
                     echo 'Code Analysis successful'
                 }
             }
@@ -68,22 +58,12 @@ pipeline {
             steps {
                 script {
                     echo 'Building docker image....'
-                    // bat(/docker build -t ${MYUSERID}\/${IMAGE} ./)
                     dockerImage = docker.build DOCKERREGISTRY + ":$VERSION"
+                    // bat(/docker build -t ${DOCKERREGISTRY} ./)
+                    // echo 'Creating tag for docker image....'
+                    // bat(/docker tag ${DOCKERREGISTRY}:latest ${DOCKERREGISTRY}:${VERSION}/)
+                    // echo 'Docker tag successful'
                     echo 'Docker build successful'
-                }
-            }
-        }
-
-        stage('Tag version to latest docker image') {
-            options {
-                timeout(time: 5, unit: 'MINUTES')
-            }
-            steps {
-                script {
-                    echo 'Creating tag for docker image....'
-                    // bat(/docker tag ${MYUSERID}\/${IMAGE}:latest ${MYUSERID}\/${IMAGE}:${VERSION}/)
-                    echo 'Docker tag successful'
                 }
             }
         }
@@ -95,7 +75,7 @@ pipeline {
             steps {
                 script {
                     echo 'Push image to Docker Hub'
-                    // bat(/docker push ${MYUSERID}\/${IMAGE}:${VERSION}/)
+                    // bat(/docker push ${DOCKERREGISTRY}:${VERSION}/)
                     docker.withRegistry( '', DOCKERCREDS ) {
                         dockerImage.push()
                     }
@@ -111,29 +91,27 @@ pipeline {
             steps {
                 script {
                     echo 'Remove image'
-                    bat(/docker rmi ${MYUSERID}\/${IMAGE}:${VERSION}/)
+                    bat(/docker rmi ${DOCKERREGISTRY}:${VERSION}/)
                     echo 'Docker image removal successful'
                 }
             }
         }
     }
 
-    // post {
+    post {
         // Always runs. And it runs before any of the other post conditions.
-        // always {
+        always {
             // Let's wipe out the workspace before we finish!
-            // deleteDir()
-        // }
-    // }
+            deleteDir()
+        }
+    }
 
     // The options directive is for configuration that applies to the whole job.
     options {
-        // For example, we'd like to make sure we only keep 10 builds at a time, so
-        // we don't fill up our storage!
-        buildDiscarder(logRotator(numToKeepStr: '5'))
+        // For example, we'd like to make sure we only keep 10 builds at a time, so we don't fill up our storage!
+        buildDiscarder(logRotator(numToKeepStr: '10'))
 
-        // And we'd really like to be sure that this build doesn't hang forever, so
-        // let's time it out after an hour.
+        // And we'd really like to be sure that this build doesn't hang forever, so let's time it out after an hour.
         timeout(time: 45, unit: 'MINUTES')
     }
 }

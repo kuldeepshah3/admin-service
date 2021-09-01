@@ -117,7 +117,7 @@
                 <version>2.7</version>
                 <!--<configuration>
                     <check>
-                        <haltOnFailure>true</haltOnFailure>
+                        <haltOnFailure>false</haltOnFailure>
                         <branchRate>85</branchRate>
                         <lineRate>85</lineRate>
                         <totalBranchRate>85</totalBranchRate>
