@@ -30,7 +30,9 @@ pipeline {
         }
 
         stage('Code compilation)') {
-           // Run the maven build
+            options {
+                timeout(time: 5, unit: 'MINUTES')
+            }
             steps {
                 script {
                     // Get the Maven tool from global configuration.
@@ -43,7 +45,9 @@ pipeline {
         }
 
         stage('Quality Gate (Integration Tests and Code Scan)') {
-           // Run the maven build
+            options {
+                timeout(time: 15, unit: 'MINUTES')
+            }
             steps {
                 script {
                     // Get the Maven tool from global configuration.
@@ -62,6 +66,17 @@ pipeline {
                 echo 'Building docker image....'
                 bat(/docker build -t ${MYUSERID}\/${IMAGE} ./)
                 echo 'Docker build successful'
+            }
+        }
+
+        stage('Tag version to latest docker image') {
+            options {
+                timeout(time: 5, unit: 'MINUTES')
+            }
+            steps {
+                echo 'Creating tag for docker image....'
+                bat(/docker tag ${MYUSERID}\/${IMAGE}:latest ${MYUSERID}\/${IMAGE}:${VERSION}/)
+                echo 'Docker tag successful'
             }
         }
 
