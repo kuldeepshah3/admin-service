@@ -3,10 +3,12 @@ package com.oracle.demo.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oracle.demo.entity.Survey;
 import com.oracle.demo.entity.SurveyVersion;
+import com.oracle.demo.interceptor.JWTInterceptor;
 import com.oracle.demo.model.QuestionDTO;
 import com.oracle.demo.model.SurveyDTO;
 import com.oracle.demo.repository.SurveyRepository;
 import com.oracle.demo.repository.SurveyVersionRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,6 +48,14 @@ class AdminControllerIntegrationTest {
     private SurveyVersionRepository surveyVersionRepository;
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+
+    @MockBean
+    JWTInterceptor jwtInterceptor;
+
+    @BeforeEach
+    void initTest() throws Exception {
+        when(jwtInterceptor.preHandle(any(), any(), any())).thenReturn(true);
+    }
 
     @Test
     void listSurveys_status200() throws Exception {
