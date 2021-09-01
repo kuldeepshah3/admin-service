@@ -66,10 +66,12 @@ pipeline {
                 timeout(time: 10, unit: 'MINUTES')
             }
             steps {
-                echo 'Building docker image....'
-                // bat(/docker build -t ${MYUSERID}\/${IMAGE} ./)
-                dockerImage = docker.build DOCKERREGISTRY + ":$VERSION"
-                echo 'Docker build successful'
+                script {
+                    echo 'Building docker image....'
+                    // bat(/docker build -t ${MYUSERID}\/${IMAGE} ./)
+                    dockerImage = docker.build DOCKERREGISTRY + ":$VERSION"
+                    echo 'Docker build successful'
+                }
             }
         }
 
@@ -78,9 +80,11 @@ pipeline {
                 timeout(time: 5, unit: 'MINUTES')
             }
             steps {
-                echo 'Creating tag for docker image....'
-                // bat(/docker tag ${MYUSERID}\/${IMAGE}:latest ${MYUSERID}\/${IMAGE}:${VERSION}/)
-                echo 'Docker tag successful'
+                script {
+                    echo 'Creating tag for docker image....'
+                    // bat(/docker tag ${MYUSERID}\/${IMAGE}:latest ${MYUSERID}\/${IMAGE}:${VERSION}/)
+                    echo 'Docker tag successful'
+                }
             }
         }
 
@@ -89,12 +93,14 @@ pipeline {
                 timeout(time: 20, unit: 'MINUTES')
             }
             steps {
-                echo 'Push image to Docker Hub'
-                // bat(/docker push ${MYUSERID}\/${IMAGE}:${VERSION}/)
-                docker.withRegistry( '', DOCKERCREDS ) {
-                    dockerImage.push()
+                script {
+                    echo 'Push image to Docker Hub'
+                    // bat(/docker push ${MYUSERID}\/${IMAGE}:${VERSION}/)
+                    docker.withRegistry( '', DOCKERCREDS ) {
+                        dockerImage.push()
+                    }
+                    echo 'Docker push successful'
                 }
-                echo 'Docker push successful'
             }
         }
 
@@ -103,9 +109,11 @@ pipeline {
                 timeout(time: 5, unit: 'MINUTES')
             }
             steps {
-                echo 'Remove image'
-                bat(/docker rmi ${MYUSERID}\/${IMAGE}:${VERSION}/)
-                echo 'Docker image removal successful'
+                script {
+                    echo 'Remove image'
+                    bat(/docker rmi ${MYUSERID}\/${IMAGE}:${VERSION}/)
+                    echo 'Docker image removal successful'
+                }
             }
         }
     }
