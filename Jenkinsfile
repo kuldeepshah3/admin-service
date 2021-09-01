@@ -19,7 +19,7 @@ pipeline {
                     properties([pipelineTriggers([pollSCM('*/20 * * * *')])])
                 }
                 //define scm connection for polling
-                git branch: 'main', credentialsId: 'GitHub-SSH', url: 'git@github.com:${MYUSERID}/${IMAGE}.git'
+                git branch: 'main', credentialsId: 'GitHub-SSH', url: 'git@github.com:kuldeepshah3/admin-service.git'
             }
         }
 
