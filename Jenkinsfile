@@ -17,6 +17,14 @@ pipeline {
             }
         }
 
+        stage ('Print useful values') {
+            steps {
+                script {
+                    echo ${env.BUILD_ID}
+                }
+            }
+        }
+
         stage('Code compilation)') {
            // Run the maven build
             steps {
@@ -38,12 +46,11 @@ pipeline {
                     def mvnHome = tool 'Maven 3.8.2'
                     bat(/mvn verify findbugs:findbugs cobertura:cobertura pmd:pmd site:site -Dmaven.test.failure.ignore=true package/)
                     echo 'Code Analysis successful'
-
                 }
             }
         }
 
-        stage('Prepare Docker Image') {
+        /* stage('Prepare Docker Image') {
             steps {
                 echo 'Building docker image....'
                 bat(/docker build -t kuldeepshah3\/admin-service ./)
@@ -57,7 +64,7 @@ pipeline {
                 bat(/docker push kuldeepshah3\/admin-service:latest/)
                 echo 'Docker push successful'
             }
-        }
+        } */
 
     }
 
@@ -65,7 +72,7 @@ pipeline {
         // Always runs. And it runs before any of the other post conditions.
         always {
             // Let's wipe out the workspace before we finish!
-            deleteDir()
+            // deleteDir()
         }
     }
 
