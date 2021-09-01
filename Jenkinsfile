@@ -6,6 +6,7 @@ pipeline {
         PATH = "C:\\Program Files\\Java\\jdk1.8.0_301\\bin;C:\\Program Files\\apache-maven-3.8.2\\bin;C:\\WINDOWS\\SYSTEM32;C:\\Program Files\\Docker\\Docker\\resources\\bin"
         IMAGE = readMavenPom().getArtifactId()
         VERSION = readMavenPom().getVersion()
+        MYUSERID = "kuldeepshah3"
     }
     stages {
 
@@ -22,8 +23,6 @@ pipeline {
         stage ('Print useful values') {
             steps {
                 script {
-                    echo "${BUILD_ID}"
-                    echo "Current \${BUILD_NUMBER} -> ${BUILD_NUMBER}"
                     echo "Pom.xml version is \${VERSION} -> ${VERSION}"
                     echo "Pom.xml image is \${IMAGE} -> ${IMAGE}"
                 }
@@ -61,7 +60,7 @@ pipeline {
             }
             steps {
                 echo 'Building docker image....'
-                bat(/docker build -t kuldeepshah3\/admin-service ./)
+                bat(/docker build -t ${MYUSERID}\/${IMAGE} ./)
                 echo 'Docker build successful'
             }
         }
@@ -72,7 +71,7 @@ pipeline {
             }
             steps {
                 echo 'Push image to Docker Hub'
-                bat(/docker push kuldeepshah3\/admin-service:latest/)
+                bat(/docker push ${MYUSERID}\/${IMAGE}:${VERSION}/)
                 echo 'Docker push successful'
             }
         }
