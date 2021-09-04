@@ -18,4 +18,5 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
     @Query(value = "SELECT s.* FROM SURVEY s INNER JOIN SURVEY_VERSION sv ON s.ID=sv.SURVEY_ID AND sv.ID=:versionId", nativeQuery = true)
     Survey findBySurveyVersion(@Param("versionId") Long versionId);
 
+    Survey findSurveyByTitleIgnoreCase(String title);
 }

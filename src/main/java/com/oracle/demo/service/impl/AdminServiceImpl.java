@@ -11,12 +11,10 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.IntStream;
 
 @Service
@@ -82,6 +80,10 @@ public class AdminServiceImpl implements AdminService {
         }
 
         if (survey == null) {
+            Survey surveyByTitle = surveyRepository.findSurveyByTitleIgnoreCase(surveyData.getTitle());
+            if (surveyByTitle != null) {
+                throw new ValidationException("Survey already exists with same title.");
+            }
             survey = new Survey();
             survey.setTitle(surveyData.getTitle());
             survey.setDescription(surveyData.getDescription());
@@ -102,6 +104,9 @@ public class AdminServiceImpl implements AdminService {
         surveyVersion.setSurvey(survey);
         surveyVersion.setVersion(surveyData.getVersion());
 
+        if (CollectionUtils.isEmpty(surveyData.getQuestions())) {
+            throw new ValidationException("At least one question is required to create survey.");
+        }
         List<SurveyQuestion> surveyQuestions = new ArrayList<>();
         for (QuestionDTO question : surveyData.getQuestions()) {
             String answerType = question.getAnswerType();
@@ -123,8 +128,16 @@ public class AdminServiceImpl implements AdminService {
                     throw new ValidationException("Answer missing!");
                 }
                 String[] answers = tAnswer.split(";");
+                Set<String> answerSet = new HashSet<>();
                 IntStream.range(0, answers.length).forEachOrdered(i -> {
-                    String answer = answers[i];
+                    String answer = answers[i].trim();
+                    if (Strings.isBlank(answer)) {
+                        throw new ValidationException("Answer value is empty or invalid.");
+                    }
+                    if (answerSet.contains(answer)) {
+                        throw new ValidationException("Invalid or duplicate value found in Answer field.");
+                    }
+                    answerSet.add(answer);
                     SurveyAnswer surveyAnswer = new SurveyAnswer();
                     surveyAnswer.setSurveyQuestion(surveyQuestion);
                     surveyAnswer.setAnswer(answer);

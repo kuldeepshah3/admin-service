@@ -109,6 +109,74 @@ class AdminControllerIntegrationTest {
     }
 
     @Test
+    void createSurvey_duplicateAnswer_status500() throws Exception {
+        List<QuestionDTO> questions = new ArrayList<>();
+        questions.add(QuestionDTO.builder().seq(1L).question("Question 1?").answerType("single").answer("Answer 4; Answer 7;Answer 5;Answer 6").build());
+        questions.add(QuestionDTO.builder().seq(2L).question("Question 2?").answerType("multiple").answer("Answer 4; Answer 4;Answer 5;Answer 6").build());
+        questions.add(QuestionDTO.builder().seq(3L).question("Question 3?").answerType("freetext").build());
+
+        SurveyDTO surveyDTO = SurveyDTO.builder().title("Survey 1").description("Survey description 1").version("1.0").questions(questions).build();
+
+        Exception exception = mvc.perform(post("/admin/create").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(surveyDTO))
+                        .param("username", "admin"))
+                .andExpect(status().is5xxServerError())
+                .andReturn().getResolvedException();
+        assertNotNull(exception);
+        assertEquals("Invalid or duplicate value found in Answer field.", exception.getMessage());
+    }
+
+    @Test
+    void createSurvey_invalidAnswer_status500() throws Exception {
+        List<QuestionDTO> questions = new ArrayList<>();
+        questions.add(QuestionDTO.builder().seq(1L).question("Question 1?").answerType("single").answer("Answer 4;    ;Answer 5;Answer 6").build());
+        questions.add(QuestionDTO.builder().seq(2L).question("Question 2?").answerType("multiple").answer("Answer 4; Answer 7;Answer 5;Answer 6").build());
+        questions.add(QuestionDTO.builder().seq(3L).question("Question 3?").answerType("freetext").build());
+
+        SurveyDTO surveyDTO = SurveyDTO.builder().title("Survey 1").description("Survey description 1").version("1.0").questions(questions).build();
+
+        Exception exception = mvc.perform(post("/admin/create").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(surveyDTO))
+                        .param("username", "admin"))
+                .andExpect(status().is5xxServerError())
+                .andReturn().getResolvedException();
+        assertNotNull(exception);
+        assertEquals("Answer value is empty or invalid.", exception.getMessage());
+    }
+
+    @Test
+    void createSurvey_noQuestions_status500() throws Exception {
+        SurveyDTO surveyDTO = SurveyDTO.builder().title("Survey 1").description("Survey description 1").version("1.0").build();
+
+        Exception exception = mvc.perform(post("/admin/create").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(surveyDTO))
+                        .param("username", "admin"))
+                .andExpect(status().is5xxServerError())
+                .andReturn().getResolvedException();
+        assertNotNull(exception);
+        assertEquals("At least one question is required to create survey.", exception.getMessage());
+    }
+
+    @Test
+    void createSurvey_existingTitle_status500() throws Exception {
+        List<QuestionDTO> questions = new ArrayList<>();
+        questions.add(QuestionDTO.builder().seq(1L).question("Question 1?").answerType("single").build());
+        questions.add(QuestionDTO.builder().seq(2L).question("Question 2?").answerType("multiple").answer("Answer 4;Answer 5;Answer 6").build());
+        questions.add(QuestionDTO.builder().seq(3L).question("Question 3?").answerType("freetext").build());
+
+        Mockito.when(surveyRepository.findSurveyByTitleIgnoreCase("Survey 1")).thenReturn(new Survey());
+        SurveyDTO surveyDTO = SurveyDTO.builder().title("Survey 1").description("Survey description 1").version("1.0").questions(questions).build();
+
+        Exception exception = mvc.perform(post("/admin/create").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(surveyDTO))
+                        .param("username", "admin"))
+                .andExpect(status().is5xxServerError())
+                .andReturn().getResolvedException();
+        assertNotNull(exception);
+        assertEquals("Survey already exists with same title.", exception.getMessage());
+    }
+
+    @Test
     void createSurvey_noVersion_status200() throws Exception {
         List<QuestionDTO> questions = new ArrayList<>();
         questions.add(QuestionDTO.builder().seq(1L).question("Question 1?").answerType("single").answer("Answer 1;Answer 2;Answer 3").build());
